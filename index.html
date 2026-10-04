@@ -620,23 +620,20 @@
     animate();
 
     // CONTADOR DESDE 28 DE JUNIO DE 2026
-    const targetDate = new Date('2026-06-28T00:00:00');
+    const targetDate = new Date('2026-06-28T03:20:00-06:00');
     function updateCounter() {
       const now = new Date();
-      const diff = targetDate - now;
+      const diff = Math.abs(targetDate - now);
 
-      if (diff > 0) {
-        document.getElementById('c-days').innerText = Math.floor(diff / (1000 * 60 * 60 * 24));
-        document.getElementById('c-hours').innerText = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        document.getElementById('c-mins').innerText = Math.floor((diff / 1000 / 60) % 60);
-        document.getElementById('c-secs').innerText = Math.floor((diff / 1000) % 60);
-      } else {
-        const pastDiff = now - targetDate;
-        document.getElementById('c-days').innerText = Math.floor(pastDiff / (1000 * 60 * 60 * 24));
-        document.getElementById('c-hours').innerText = Math.floor((pastDiff / (1000 * 60 * 60)) % 24);
-        document.getElementById('c-mins').innerText = Math.floor((pastDiff / 1000 / 60) % 60);
-        document.getElementById('c-secs').innerText = Math.floor((pastDiff / 1000) % 60);
-      }
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hour = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const mins = Math.floor((diff / 1000 / 60) % 60);
+      const secs = Math.floor((diff / 1000) % 60);
+
+      document.getElementById('c-days').innerText = days
+      document.getElementById('c-hours').innerText = hour
+      document.getElementById('c-mins').innerText = mins
+      document.getElementById('c-secs').innerText = secs
     }
     setInterval(updateCounter, 1000);
     updateCounter();
