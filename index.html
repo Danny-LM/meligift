@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Para mi Streamer Favorito 🍊🦈 | Día del Novio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,600;0,800;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #0b0712;
+      --card-bg: rgba(22, 14, 38, 0.75);
+      --purple-primary: #8a2be2;
+      --purple-glow: #a855f7;
+      --purple-accent: #c084fc;
+      --orange-accent: #ff8c00;
+      --orange-glow: #ffa500;
+      --gold: #f59e0b;
+      --text-main: #f3f4f6;
+      --text-muted: #c084fc;
+      --border-color: rgba(168, 85, 247, 0.25);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    #petals-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    header {
+      text-align: center;
+      padding: 3rem 1rem 2rem;
+      background: radial-gradient(circle at center, rgba(138, 43, 226, 0.15) 0%, transparent 70%);
+      border-radius: 2rem;
+      margin-bottom: 3rem;
+      border: 1px solid var(--border-color);
+      backdrop-filter: blur(10px);
+    }
+
+    .badge-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid #ef4444;
+      color: #f87171;
+      padding: 0.4rem 1rem;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+      animation: pulse 2s infinite;
+    }
+
+    .badge-live .dot {
+      width: 8px;
+      height: 8px;
+      background-color: #ef4444;
+      border-radius: 50%;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      background: linear-gradient(135deg, #fff 0%, var(--purple-accent) 50%, var(--orange-glow) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 1rem;
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: #d1d5db;
+      max-width: 650px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .glass-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 1.5rem;
+      padding: 2rem;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      margin-bottom: 2.5rem;
+      transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+
+    .glass-card:hover {
+      border-color: rgba(168, 85, 247, 0.4);
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      color: #fff;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .counter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 1rem;
+      text-align: center;
+      margin-top: 1.5rem;
+    }
+
+    .counter-item {
+      background: rgba(138, 43, 226, 0.1);
+      border: 1px solid rgba(168, 85, 247, 0.2);
+      padding: 1.25rem 0.5rem;
+      border-radius: 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .counter-number {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #fff;
+      text-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+    }
+
+    .counter-label {
+      font-size: 0.85rem;
+      color: var(--purple-accent);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 0.25rem;
+    }
+
+    .map-container {
+      height: 380px;
+      width: 100%;
+      border-radius: 1rem;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      z-index: 1;
+    }
+
+    .streamer-wrapper {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 850px) {
+      .streamer-wrapper {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .stream-screen {
+      background: #000;
+      border-radius: 1rem;
+      border: 1px solid var(--border-color);
+      position: relative;
+      aspect-ratio: 16/9;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 1.5rem;
+      overflow: hidden;
+    }
+
+    .stream-screen-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle, rgba(138,43,226,0.3) 0%, rgba(0,0,0,0.8) 100%);
+      opacity: 0.6;
+    }
+
+    .stream-content {
+      position: relative;
+      z-index: 2;
+    }
+
+    .photo-placeholder {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--purple-primary), var(--orange-accent));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      margin: 0 auto 1rem;
+      box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+      border: 3px solid #fff;
+    }
+
+    .chat-box {
+      background: rgba(10, 6, 18, 0.8);
+      border-radius: 1rem;
+      border: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      height: 320px;
+    }
+
+    .chat-header {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--purple-accent);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      font-size: 0.85rem;
+    }
+
+    .chat-msg {
+      line-height: 1.4;
+    }
+
+    .chat-user {
+      font-weight: 700;
+      color: var(--orange-accent);
+    }
+
+    .chat-user.mod {
+      color: var(--purple-accent);
+    }
+
+    .chat-actions {
+      padding: 0.75rem;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, var(--purple-primary), #6b21a8);
+      color: #fff;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 0.75rem;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 12px rgba(138, 43, 226, 0.3);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(168, 85, 247, 0.5);
+      background: linear-gradient(135deg, #9333ea, var(--purple-primary));
+    }
+
+    .btn-orange {
+      background: linear-gradient(135deg, var(--orange-accent), #c2410c);
+      box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);
+    }
+
+    .btn-orange:hover {
+      background: linear-gradient(135deg, #fb923c, var(--orange-accent));
+      box-shadow: 0 6px 16px rgba(255, 165, 0, 0.5);
+    }
+
+    .reasons-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .search-input {
+      background: rgba(10, 6, 18, 0.6);
+      border: 1px solid var(--border-color);
+      padding: 0.6rem 1rem;
+      border-radius: 0.75rem;
+      color: #fff;
+      font-family: 'Outfit', sans-serif;
+      outline: none;
+      width: 100%;
+      max-width: 280px;
+    }
+
+    .reasons-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+      max-height: 480px;
+      overflow-y: auto;
+      padding-right: 0.5rem;
+    }
+
+    .reason-card {
+      background: rgba(138, 43, 226, 0.08);
+      border: 1px solid rgba(168, 85, 247, 0.15);
+      border-radius: 1rem;
+      padding: 1.25rem;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .reason-num {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--orange-accent);
+      letter-spacing: 1px;
+    }
+
+    .reason-text {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: #e5e7eb;
+    }
+
+    .interaction-bar {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 10, 25, 0.85);
+      border: 1px solid var(--purple-accent);
+      backdrop-filter: blur(16px);
+      padding: 0.75rem 1.5rem;
+      border-radius: 999px;
+      display: flex;
+      gap: 1rem;
+      z-index: 100;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: var(--bg-dark);
+      border: 1px solid var(--purple-accent);
+      border-radius: 1.5rem;
+      padding: 2rem;
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+      position: relative;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(10, 6, 18, 0.5);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--purple-primary);
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="petals-canvas"></canvas>
+
+  <div class="container">
+    <header>
+      <div class="badge-live">
+        <span class="dot"></span> Transmitiendo Amor Directo a Dani's Land
+      </div>
+      <h1>Feliz Día del Novio, Mi Streamer Favorito 🍊🦈</h1>
+      <p class="subtitle">
+        A pesar de la distancia, cada segundo conectado contigo vale todo. Esta página es un rincón algo pocho, en el universo solo para nosotros.
+      </p>
+    </header>
+
+    <!-- CONTADOR DE TIEMPO -->
+    <div class="glass-card">
+      <div class="section-title">
+        <span>⌛</span> Tiempo Esperando Nuestro Gran Día
+      </div>
+      <p style="color: #9ca3af; font-size: 0.9rem;">
+        Contando los días para el inicio oficial de nuestra aventura (28 de Junio de 2026):
+      </p>
+         
+      <div class="counter-grid"> 
+         <div class="counter-item">
+          <div class="counter-number" id="c-years">00</div>
+          <div class="counter-label">Años</div>
+        </div>
+        <div class="counter-item">
+          <div class="counter-number" id="c-days">00</div>
+          <div class="counter-label">Días</div>
+        </div>
+        <div class="counter-item">
+          <div class="counter-number" id="c-hours">00</div>
+          <div class="counter-label">Horas</div>
+        </div>
+        <div class="counter-item">
+          <div class="counter-number" id="c-mins">00</div>
+          <div class="counter-label">Minutos</div>
+        </div>
+        <div class="counter-item">
+          <div class="counter-number" id="c-secs">00</div>
+          <div class="counter-label">Segundos</div>
+        </div>
+              </div>
+    </div>
+</div>
+
+
+    <!-- SECCIÓN STREAMER Y CHAT -->
+    <div class="glass-card">
+      <div class="section-title">
+        <span>🎮</span> Canal Oficial: Mandarina Live 🍊🦈
+      </div>
+      <div class="streamer-wrapper">
+        <div class="stream-screen">
+          <div class="stream-screen-bg"></div>
+          <div class="stream-content">
+            <div class="photo-placeholder">🦈</div>
+            <h3 style="color: #fff; margin-bottom: 0.25rem;">Streamer de mi corazón 🍊</h3>
+            <p style="color: var(--purple-accent); font-size: 0.85rem; margin-bottom: 1rem;">
+              "Casi no me dejo ver, pero transmito amor 24/7"
+            </p>
+            <button class="btn btn-orange" onclick="triggerAlert('¡Suscripción VIP de Por Vida Activada! 💜')">
+              ⭐ Suscribirse al Amor
+            </button>
+          </div>
+        </div>
+
+        <div class="chat-box">
+          <div class="chat-header">
+            <span>CHAT EN VIVO</span>
+            <span style="color: #10b981; font-size: 0.75rem;">● CONECTADOS</span>
+          </div>
+          <div class="chat-messages" id="chat-msgs">
+            <div class="chat-msg"><span class="chat-user mod">Mod_Amor:</span> ¡Bienvenidos al stream más especial! 🍊</div>
+            <div class="chat-msg"><span class="chat-user">Fan#1:</span> ¡te amooooooo! 🦈</div>
+          </div>
+          <div class="chat-actions">
+            <button class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="sendBit('¡Te amo! 💜')">
+              💎 Enviar Bits
+            </button>
+            <button class="btn btn-orange" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="sendBit('🍊 Mandarina amorosa!')">
+              🍊 Regalar Mandarina
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAPA DISTANCIA -->
+    <div class="glass-card">
+      <div class="section-title">
+        <span>🗺️</span> De Mi Corazón a Durango
+      </div>
+      <p style="color: #9ca3af; font-size: 0.9rem; margin-bottom: 1rem;">
+        No importan los kilómetros que nos separen, la señal de nuestro amor no tiene latencia.
+      </p>
+      <div id="map" class="map-container"></div>
+    </div>
+
+    <!-- 100 RAZONES -->
+    <div class="glass-card">
+      <div class="reasons-header">
+        <div class="section-title" style="margin: 0;">
+          <span>💜</span> 100 Razones Por Las Que Te Amo
+        </div>
+        <div style="display: flex; gap: 0.5rem; width: 100%; max-width: 400px;">
+          <input type="text" id="reason-search" class="search-input" placeholder="Buscar razón (ej. streamer, Durango, foto)..." oninput="filterReasons()">
+          <button class="btn" onclick="getRandomReason()">🎲 Azar</button>
+        </div>
+      </div>
+      <div class="reasons-grid" id="reasons-container"></div>
+    </div>
+  </div>
+
+  <!-- BARRA DE INTERACCIÓN FLOTANTE -->
+  <div class="interaction-bar">
+    <button class="btn" onclick="sendVirtualHug()">🤗 Abrazo Virtual</button>
+    <button class="btn btn-orange" onclick="sendVirtualKiss()">💋 Beso Virtual</button>
+    <button class="btn" onclick="toggleAudio()" id="audio-btn">🎵 Música</button>
+  </div>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal-card">
+      <h3 id="modal-title" style="color: var(--purple-accent); margin-bottom: 1rem; font-size: 1.5rem;"></h3>
+      <p id="modal-body" style="color: #e5e7eb; line-height: 1.6; margin-bottom: 1.5rem;"></p>
+      <button class="btn btn-orange" onclick="closeModal()">Cerrar con Amor 💜</button>
+    </div>
+  </div>
+
+  <script>
+    // PETALOS Y ELEGANTE FONDO
+    const canvas = document.getElementById('petals-canvas');
+    const ctx = canvas.getContext('2d');
+    let petals = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Petal {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height - canvas.height;
+        this.size = Math.random() * 8 + 6;
+        this.speedY = Math.random() * 1 + 0.5;
+        this.speedX = Math.random() * 0.6 - 0.3;
+        this.angle = Math.random() * 360;
+        this.spin = Math.random() * 0.02 - 0.01;
+        this.opacity = Math.random() * 0.5 + 0.3;
+      }
+      update() {
+        this.y += this.speedY;
+        this.x += this.speedX;
+        this.angle += this.spin;
+        if (this.y > canvas.height) {
+          this.y = -20;
+          this.x = Math.random() * canvas.width;
+        }
+      }
+      draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
+        ctx.fillStyle = `rgba(168, 85, 247, ${this.opacity})`;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, this.size, this.size / 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    for (let i = 0; i < 35; i++) petals.push(new Petal());
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      petals.forEach(p => { p.update(); p.draw(); });
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    // CONTADOR DESDE 28 DE JUNIO DE 2026
+    const targetDate = new Date('2026-06-28T00:00:00');
+    function updateCounter() {
+      const now = new Date();
+      const diff = targetDate - now;
+
+      if (diff > 0) {
+        document.getElementById('c-days').innerText = Math.floor(diff / (1000 * 60 * 60 * 24));
+        document.getElementById('c-hours').innerText = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        document.getElementById('c-mins').innerText = Math.floor((diff / 1000 / 60) % 60);
+        document.getElementById('c-secs').innerText = Math.floor((diff / 1000) % 60);
+      } else {
+        const pastDiff = now - targetDate;
+        document.getElementById('c-days').innerText = Math.floor(pastDiff / (1000 * 60 * 60 * 24));
+        document.getElementById('c-hours').innerText = Math.floor((pastDiff / (1000 * 60 * 60)) % 24);
+        document.getElementById('c-mins').innerText = Math.floor((pastDiff / 1000 / 60) % 60);
+        document.getElementById('c-secs').innerText = Math.floor((pastDiff / 1000) % 60);
+      }
+    }
+    setInterval(updateCounter, 1000);
+    updateCounter();
+
+    // MAPA CON DURANGO
+    const durangoCoords = [24.0277, -104.6532];
+    const userCoords = [19.4326, -99.1332];
+
+    const map = L.map('map', { zoomControl: false }).setView([21.7, -101.8], 5);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    const durangoIcon = L.divIcon({
+      html: '<div style="font-size: 2rem;">🦈</div>',
+      className: 'map-icon'
+    });
+    const myIcon = L.divIcon({
+      html: '<div style="font-size: 2rem;">🍊</div>',
+      className: 'map-icon'
+    });
+
+    L.marker(durangoCoords, { icon: durangoIcon }).addTo(map).bindPopup('<b>Durango</b><br>El streamer más lindo reside aquí.');
+    L.marker(userCoords, { icon: myIcon }).addTo(map).bindPopup('<b>Mi Corazón</b><br>Pensándote cada segundo.');
+
+    L.polyline([durangoCoords, userCoords], {
+      color: '#c084fc',
+      weight: 3,
+      dashArray: '8, 8'
+    }).addTo(map);
+
+    // 100 RAZONES GENERADOR
+    const baseReasons = [
+      "Amo cómo te apasionas cuando haces stream.",
+      "Tus streams hacen que la distancia se sienta pequeñita.",
+      "Amo tu apodo agridulce de mandarina 🍊.",
+      "Tu gusto por los tiburones 🦈.",
+      "Que aunque no mandes muchas fotos, cuando mandas una me haces el día entero.",
+      "La forma en la que hablas de las cosas que te gustan.",
+      "Cómo me haces sonreír a través de una pantalla.",
+      "Tu voz tranquilizadora por las noches.",
+      "Tu paciencia infinita conmigo.",
+      "Cómo cuidas a tu comunidad en stream.",
+      "El esfuerzo que le pones a todo lo que haces.",
+      "Tu risa contagiosa que alegra cualquier día gris.",
+      "Que eres mi refugio seguro sin importar los kilómetros.",
+      "Tus mensajes sorpresa al despertar.",
+      "La forma en que planeamos nuestro futuro juntos.",
+      "Porque el 28 de junio de 2026 marcará el mejor capítulo.",
+      "Tu sentido del humor único.",
+      "Que haces que cualquier juego sea 100 veces más divertido."
+    ];
+
+    const reasons = [];
+    for (let i = 1; i <= 100; i++) {
+      if (i <= baseReasons.length) {
+        reasons.push(baseReasons[i - 1]);
+      } else {
+        reasons.push(`Razón #${i}: Por cada detalle, risa compartida en Discord y momento inolvidable a la distancia que nos une.`);
+      }
+    }
+
+    function renderReasons(list) {
+      const container = document.getElementById('reasons-container');
+      container.innerHTML = '';
+      list.forEach((r, idx) => {
+        const card = document.createElement('div');
+        card.className = 'reason-card';
+        card.innerHTML = `
+          <div class="reason-num">RAZÓN #${idx + 1}</div>
+          <div class="reason-text">${r}</div>
+        `;
+        container.appendChild(card);
+      });
+    }
+    renderReasons(reasons);
+
+    function filterReasons() {
+      const q = document.getElementById('reason-search').value.toLowerCase();
+      const filtered = reasons.filter(r => r.toLowerCase().includes(q));
+      renderReasons(filtered);
+    }
+
+    function getRandomReason() {
+      const rand = reasons[Math.floor(Math.random() * reasons.length)];
+      showModal("🎲 Razón Aleatoria", rand);
+    }
+
+    // CHAT Y ALERTAS
+    function sendBit(text) {
+      const chat = document.getElementById('chat-msgs');
+      const msg = document.createElement('div');
+      msg.className = 'chat-msg';
+      msg.innerHTML = `<span class="chat-user">TuNoviaVIP:</span> ${text}`;
+      chat.appendChild(msg);
+      chat.scrollTop = chat.scrollHeight;
+      confetti({ particleCount: 30, spread: 60, origin: { y: 0.8 } });
+    }
+
+    function triggerAlert(title) {
+      showModal("🎉 ALERTA EN VIVO EN MI CORAZÓN", title);
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+    }
+
+    // INTERACCIONES
+    function sendVirtualHug() {
+      showModal("🤗 Abrazo Virtual Enviado", "Un abrazo apretado viajando a máxima velocidad a ti para envolverte con todo mi amor.");
+      confetti({ particleCount: 50, colors: ['#8a2be2', '#c084fc'] });
+    }
+
+    function sendVirtualKiss() {
+      showModal("💋 Beso Virtual Entregado", "¡Muak! Un beso lleno de mandarinas 🍊 y amor directo a tu mejilla o labios jiji.");
+      confetti({ particleCount: 60, colors: ['#ff8c00', '#ffa500'] });
+    }
+
+    // MODAL
+    function showModal(title, body) {
+      document.getElementById('modal-title').innerText = title;
+      document.getElementById('modal-body').innerText = body;
+      document.getElementById('modal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('modal').classList.remove('active');
+    }
+
+    // REPRODUCTOR DE CANCIÓN MP3
+    let bgAudio = null;
+
+    function toggleAudio() {
+      const btn = document.getElementById('audio-btn');
+      
+      if (!bgAudio) {
+               bgAudio = new Audio('https://res.cloudinary.com/lwedbced/video/upload/v1791084894/Lady-Gaga_-Bruno-Mars-Die-With-A-Smile-_Lyrics_.mp3');
+        bgAudio.loop = true;
+      }
+
+      if (bgAudio.paused) {
+        bgAudio.play();
+        btn.innerText = "🎵 Pausar Música";
+      } else {
+        bgAudio.pause();
+        btn.innerText = "🎵 Música";
+      }
+    }
+  </script>
+</body>
+</html>
